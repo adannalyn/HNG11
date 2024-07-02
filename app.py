@@ -19,7 +19,7 @@ def hello():
     weather_response = requests.get(weather_url).json()
     temperature = weather_response['main']['temp']
 
-    greeting = f'Hello, {visitor_name}! the temperature is {temperature} + degrees celsius in {city}'
+    greeting = f'Hello, {visitor_name}! the temperature is {temperature} degrees celsius in {city}'
 
     response_data = {
         'client_ip': client_ip,
