@@ -7,7 +7,7 @@ app = Flask(__name__)
 def hello():
     visitor_name = request.args.get('visitor_name', 'Visitor')
 
-    client_ip = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
+    client_ip = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
 
     location_url = f'http://ip-api.com/json/{client_ip}'
     location_response = requests.get(location_url).json()
