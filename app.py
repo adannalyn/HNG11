@@ -5,7 +5,7 @@ app = Flask(__name__)
 
 @app.route('/api/hello', methods=['GET'])
 def hello():
-    visitor_name = request.args.get('visitor_name', 'Guest', type=str)
+    visitor_name = request.args.get("visitor_name", "Guest")
 
     # Get the client's IP address
     client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
@@ -23,7 +23,7 @@ def hello():
     temperature = weather_data.get('current_weather', {}).get('temperature', 'Unknown')
 
     # Create the greeting message
-    greeting = f'Hello, {visitor_name}!, the temperature is {temperature} degrees Celsius in {city}'
+    greeting = f'Hello, {}!, the temperature is {temperature} degrees Celsius in {city}'.format(visitor_name.strip('"'))
 
     return jsonify({
         "client_ip": client_ip,
