@@ -3,29 +3,33 @@ import requests
 
 app = Flask(__name__)
 
-@app.route('/api/hello')
+@app.route('/api/hello', methods=['GET'])
 def hello():
-    visitor_name = request.args.get('visitor_name')
-    client_ip = request.remote_addr
+    visitor_name = request.args.get('visitor_name', 'Guest')
+    
+    # Get the client's IP address
+    client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
 
-    # Get location and temperature using an API
-    # Here we use ip-api.com, but you can explore other options 
-    response = requests.get(f'http://ip-api.com/json/{client_ip}')
-    if response.status_code == 200:
-        data = response.json()
-        location = data.get('city', 'Unknown')
-        temperature = data.get('temp', 'Unknown')
-        greeting = f"Hello, {visitor_name}!, the temperature is {temperature} degrees Celcius in {location}"
-    else:
-        location = "Unknown"
-        temperature = "Unknown"
-        greeting = f"Hello, {visitor_name}! I can't get the weather information right now."
+    # Get the location based on IP address
+    ipify_response = requests.get(f'https://geo.ipify.org/api/v2/country,city?apiKey=at_Y5YuOTDmVVYuxZHdaOZEgZeDmcUlC&ipAddress={client_ip}')
+    ipify_data = ipify_response.json()
+    city = ipify_data.get('location', {}).get('city', 'Unknown')
+    latitude = ipify_data.get('location', {}).get('lat', 0)
+    longitude = ipify_data.get('location', {}).get('lng', 0)
+
+    # Get the weather data for the location
+    open_meteo_response = requests.get(f'https://api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}&current_weather=true')
+    weather_data = open_meteo_response.json()
+    temperature = weather_data.get('current_weather', {}).get('temperature', 'Unknown')
+
+    # Create the greeting message
+    greeting = f"Hello, {visitor_name}!, the temperature is {temperature} degrees Celsius in {city}"
 
     return jsonify({
         "client_ip": client_ip,
-        "location": location,
+        "location": city,
         "greeting": greeting
     })
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(debug=True)
