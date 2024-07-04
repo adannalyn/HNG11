@@ -11,7 +11,7 @@ def hello():
     client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
 
     # Get the location based on IP address
-    ipify_response = requests.get(f'https://geo.ipify.org/api/v2/country,city?apiKey=YOUR_IPIFY_API_KEY&ipAddress={client_ip}')
+    ipify_response = requests.get(f'https://geo.ipify.org/api/v2/country,city?apiKey=at_Y5YuOTDmVVYuxZHdaOZEgZeDmcUlC&ipAddress={client_ip}')
     ipify_data = ipify_response.json()
     city = ipify_data.get('location', {}).get('city', 'Unknown')
     latitude = ipify_data.get('location', {}).get('lat', 0)
