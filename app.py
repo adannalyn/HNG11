@@ -23,7 +23,7 @@ def hello():
     temperature = weather_data.get('current_weather', {}).get('temperature', 'Unknown')
 
     # Create the greeting message
-    greeting = f'Hello, {}!, the temperature is {temperature} degrees Celsius in {city}'.format(visitor_name.strip('"'))
+    greeting = "Hello, {}!, the temperature is {} degrees Celsius in {}".format(visitor_name.strip('"'), int(temperature), city)
 
     return jsonify({
         "client_ip": client_ip,
