@@ -1,63 +1,33 @@
 from flask import Flask, request, jsonify
 import requests
-from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app, supports_credentials=True)
 
-@app.route("/api/hello")
-def greeting():
-    # Get client IP address, considering proxies and load balancers
-    if request.headers.getlist("X-Forwarded-For"):
-        client_ip = request.headers.getlist("X-Forwarded-For")[0].split(',')[0].strip()
-    else:
-        client_ip = request.remote_addr
-    visitor_name = request.args.get("visitor_name", default='Guest', type=str)
-    client_info = get_client_city(client_ip)
-    city = client_info.get("city")
-    lat = client_info.get("lat")
-    lon = client_info.get('lon')
-    weather_info = get_temp(lon, lat)
-    temp = weather_info['main']['temp']
-    response = {
+@app.route('/api/hello', methods=['GET'])
+def hello():
+    visitor_name = request.args.get('visitor_name', 'Guest')
+
+    # Get the client's IP address
+    client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+
+    # Get the location based on IP address
+    ipify_response = requests.get(f'https://geo.ipify.org/api/v2/country,city?apiKey=at_Y5YuOTDmVVYuxZHdaOZEgZeDmcUlC&ipAddress={client_ip}')
+    ipify_data = ipify_response.json()
+    city = ipify_data.get('location', {}).get('city', 'Unknown')
+
+    # Get the weather data for the city
+    openweather_response = requests.get(f'http://api.openweathermap.org/data/2.5/weather?q={city}&appid5e3096a01a2e3f37899007dfa3ee3fca&units=metric')
+    weather_data = openweather_response.json()
+    temperature = weather_data.get('main', {}).get('temp', 'Unknown')
+
+    # Create the greeting message
+    greeting = f"Hello, {visitor_name}!, the temperature is {temperature} degrees Celcius in {city}"
+
+    return jsonify({
         "client_ip": client_ip,
         "location": city,
-        "greeting": "Hello, {}!, the temperature is {} degree celcius in {}.".format(visitor_name.strip('"'), int(temp), city)
-    }
-    return jsonify(response)
-
-@app.route("/")
-def index():
-    return jsonify({
-        "Message": "Welcome to Home Page"
+        "greeting": greeting
     })
 
-def get_client_city(ip_address):
-    url = f"https://ipinfo.io/{ip_address}"
-    params = {
-        "token": "6a11f15ed06812"
-    }
-    try:
-        response = requests.get(url, params).json()
-        city = response.get("city", "Aba")
-        axis = response.get('loc').split(",")
-        longitude = axis[0]
-        latitude  = axis[1]
-
-        data = {
-            "city": city,
-            "lon": longitude,
-            "lat": latitude
-            }
-        return data
-    except:
-        pass
-
-def get_temp(longitude, latitude):
-    WEATHER_API_KEY = 'a4db38eb81b0c028caca64dafd8ffb89'
-    url = f'http://api.openweathermap.org/data/2.5/weather?lat={latitude}&lon={longitude}&appid={WEATHER_API_KEY}&units=metric'
-    response = requests.get(url)
-
-    if response.status_code == 200:
-        return response.json()
-    return None
+if __name__ == '__main__':
+    app.run(debug=True)
